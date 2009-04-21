@@ -1,4 +1,6 @@
 CC=gcc -Wall -O2 -I"$(PATH_TO_NGINX)/objs/" -I"$(PATH_TO_NGINX)/src/core/" -I"$(PATH_TO_NGINX)/src/os/unix/"
+NGX_OBJS=$(PATH_TO_NGINX)/objs
+NGX_ALL_OBJS= -lpcre -lz $(NGX_OBJS)/src/core/ngx_*.o $(NGX_OBJS)/src/os/unix/ngx_*.o $(NGX_OBJS)/src/event/ngx_*.o $(NGX_OBJS)/src/http/ngx_*.o $(NGX_OBJS)/src/http/modules/ngx_*.o $(NGX_OBJS)/src/event/modules/ngx_*.o $(NGX_OBJS)/ngx_*.o
 
 test: check_path string_test
 	@./string_test
@@ -11,10 +13,10 @@ else
 endif
 
 string_test: string_test.o testing.o
-	$(CC) -o $@ $@.o $@.o.wrapper.o testing.o
+	@$(CC) -o $@ $@.o $@.o.wrapper.o $(NGX_ALL_OBJS) testing.o # -e testing_main -S
 
 testing.o: testing.c testing.h
-	$(CC) -c testing.c
+	@$(CC) -c testing.c
 
 .c.o:
 	$(CC) -c $<
