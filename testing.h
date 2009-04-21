@@ -10,7 +10,7 @@ struct testing_test_t
 
 
 extern int
-testing_run_tests ();
+testing_run_tests (test_t *tests, char ** names);
 
 extern void
 test ();

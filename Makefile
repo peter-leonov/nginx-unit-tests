@@ -19,7 +19,7 @@ testing.o: testing.c testing.h
 	@$(CC) -c testing.c
 
 .c.o:
-	$(CC) -c $<
+	@$(CC) -c $<
 	@nm $@ | ./nm2c.pl > $@.wrapper.c
 	@cat wrapper.c >> $@.wrapper.c
 	@$(CC) -o $@.wrapper.o -c $@.wrapper.c
