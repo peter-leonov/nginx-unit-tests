@@ -1,13 +1,14 @@
-CC=gcc -Wall -O2
+CC=gcc -Wall -O2 -I"$(PATH_TO_NGINX)/objs/" -I"$(PATH_TO_NGINX)/src/core/" -I"$(PATH_TO_NGINX)/src/os/unix/"
 
-test: string_test
+test: check_path string_test
+	@./string_test
+
+check_path:
 ifdef PATH_TO_NGINX
-	@echo PATH_TO_NGINX="$(PATH_TO_NGINX)"
+	@echo testing nginx at $(PATH_TO_NGINX)
 else
 	$(error PATH_TO_NGINX is undefined)
 endif
-	echo $(PATH_TO_NGINX)
-	@./string_test
 
 string_test: string_test.o testing.o
 	$(CC) -o $@ $@.o $@.o.wrapper.o testing.o
