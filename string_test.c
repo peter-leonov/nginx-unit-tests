@@ -1,10 +1,47 @@
+#include <assert.h>
+// #include <ngx_core.h>
+
+#include <ngx_config.h>
+
+
+
+// fake nginx
+typedef unsigned char u_char;
+struct ngx_cycle_t
+{
+	int *log;
+} ngx_cycle;
+
+typedef int ngx_log_t;
+
+void *
+ngx_alloc(size_t size, ngx_log_t *log)
+{
+	return malloc(size);
+}
+
+
+// fake pool
+typedef int ngx_pool_t;
+
+void *
+ngx_pnalloc(ngx_pool_t *pool, size_t size)
+{
+	return pool ? malloc(size) : NULL;
+}
+
+
+#define _NGX_CORE_H_INCLUDED_
+#include <ngx_string.h>
+
 #include "testing.h"
-#include "assert.h"
-#include "ngx_core.h"
 
 
 
-void fields ()
+
+
+
+void fields_t ()
 {
 	ngx_str_t str;
 	str.len = 0;
@@ -25,7 +62,7 @@ void fields ()
 // Usage: *res = ngx_cpystrn(dst, src, bytes_number_of_dst); size_t copied = res - dst;
 
 
-void ngx_cpystrn_with_small_string ()
+void ngx_cpystrn_with_small_string_t ()
 {
 	u_char *dst = malloc(20);
 	u_char *src = (u_char*)"test";
@@ -43,7 +80,7 @@ void ngx_cpystrn_with_small_string ()
 	assert(*res == '\0');
 }
 
-void ngx_cpystrn_with_bigger_string ()
+void ngx_cpystrn_with_bigger_string_t ()
 {
 	u_char *dst = malloc(3);
 	u_char *src = (u_char*)"test";
@@ -59,7 +96,7 @@ void ngx_cpystrn_with_bigger_string ()
 }
 
 
-void ngx_cpystrn_with_exact_string ()
+void ngx_cpystrn_with_exact_string_t ()
 {
 	u_char *dst = malloc(5);
 	u_char *src = (u_char*)"test";
@@ -75,7 +112,7 @@ void ngx_cpystrn_with_exact_string ()
 }
 
 
-void ngx_cpystrn_with_dst_length_eq_0 ()
+void ngx_cpystrn_with_dst_length_eq_0_t ()
 {
 	u_char *dst = malloc(5);
 	u_char *src = (u_char*)"test";
@@ -93,7 +130,7 @@ void ngx_cpystrn_with_dst_length_eq_0 ()
 }
 
 
-// void ngx_cpystrn_with_dst_length_less_0 ()
+// void ngx_cpystrn_with_dst_length_less_0_t ()
 // {
 // 	u_char *dst = malloc(5);
 // 	u_char *src = (u_char*)"test";
@@ -110,7 +147,7 @@ void ngx_cpystrn_with_dst_length_eq_0 ()
 // 	assert(res == dst);
 // }
 
-void ngx_cpystrn_with_dst_length_less_0 ()
+void ngx_cpystrn_with_dst_length_less_0_t ()
 {
 	u_char *dst = malloc(5);
 	u_char *src = (u_char*)"test";
@@ -135,7 +172,7 @@ void ngx_cpystrn_with_dst_length_less_0 ()
 // This function is muth useful when called to lowercase the string in place.
 
 
-void ngx_strlow_with_dst_match_src_length ()
+void ngx_strlow_with_dst_match_src_length_t ()
 {
 	u_char *src = malloc(5);
 	u_char *dst = malloc(5);
@@ -149,7 +186,7 @@ void ngx_strlow_with_dst_match_src_length ()
 	assert(dst[0] == 'a' && dst[1] == 'b' && dst[2] == 'c' && dst[3] == 'd' && dst[4] == '\0');
 }
 
-void ngx_strlow_with_dst_less_src_length ()
+void ngx_strlow_with_dst_less_src_length_t ()
 {
 	u_char *src = malloc(5);
 	u_char *dst = malloc(3);
@@ -163,7 +200,7 @@ void ngx_strlow_with_dst_less_src_length ()
 	assert(dst[0] == 'a' && dst[1] == 'b' && dst[2] == 'c');
 }
 
-void ngx_tolower_alphabet ()
+void ngx_tolower_alphabet_t ()
 {
 	u_char *src = (u_char*)"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 	u_char *low = (u_char*)"abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz";
@@ -173,7 +210,7 @@ void ngx_tolower_alphabet ()
 		assert(ngx_tolower(src[i]) == low[i]);
 }
 
-void ngx_toupper_alphabet ()
+void ngx_toupper_alphabet_t ()
 {
 	u_char *src = (u_char*)"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 	u_char *up = (u_char*)"ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -186,7 +223,6 @@ void ngx_toupper_alphabet ()
 
 
 
-
 // u_char *
 // ngx_pstrdup(ngx_pool_t *pool, ngx_str_t *src)
 // Duplicates src useing pool to allocate memory for new dup.
@@ -194,27 +230,28 @@ void ngx_toupper_alphabet ()
 // so it's only usefull for duplicating an ngx_str_t entities.
 
 // Example:
-static void ngx_pstrdup_example ()
-{
-	ngx_pool_t  *pool = ngx_create_pool(32, NULL);
-	ngx_str_t dst, src = ngx_string("test");
-	
-	// copying src to dst
-	dst.len = src.len;
-	dst.data = ngx_pstrdup(pool, &src);
-	if (dst.data == NULL)
-		return; //NGX_ERROR;
-	
-}
+// static void ngx_pstrdup_example ()
+// {
+// 	ngx_pool_t  *pool = ngx_create_pool(32, NULL);
+// 	ngx_str_t dst, src = ngx_string("test");
+// 	
+// 	// copying src to dst
+// 	dst.len = src.len;
+// 	dst.data = ngx_pstrdup(pool, &src);
+// 	if (dst.data == NULL)
+// 		return; //NGX_ERROR;
+// 	
+// }
 
 
-void ngx_pstrdup_with_pool_big_enough ()
+void ngx_pstrdup_with_pool_big_enough_t ()
 {
-	ngx_pool_t  *pool = ngx_create_pool(32, NULL);
+	// ngx_pool_t  *pool = ngx_create_pool(32, NULL);
+	ngx_pool_t  pool = 1;
 	
 	ngx_str_t src = ngx_string("test");
 	
-	u_char *dst = ngx_pstrdup(pool, &src);
+	u_char *dst = ngx_pstrdup(&pool, &src);
 	
 	// check copy
 	assert(dst[0] == 't' && dst[1] == 'e' && dst[2] == 's' && dst[3] == 't' && dst[4] == '\0');

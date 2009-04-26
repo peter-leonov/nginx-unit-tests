@@ -15,7 +15,7 @@ else
 endif
 
 string_test: string_test.o testing.o
-	@$(CC) -o $@ $@.o $@.o.wrapper.o $(NGX_ALL_OBJS) testing.o # -e testing_main -S
+	@$(CC) -o $@ $@.o $@.o.wrapper.o $(NGX_OBJS)/src/core/ngx_string.o testing.o # -e testing_main -S
 
 testing.o: testing.c testing.h
 	@$(CC) -c testing.c
