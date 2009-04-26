@@ -43,7 +43,8 @@ int testing_run_tests (test_t *tests, char ** names)
 			}
 			else
 			{
-				printf("%d", test());
+				test();
+				printf("ok");
 				fflush(stdout);
 				_exit(0);
 			}
