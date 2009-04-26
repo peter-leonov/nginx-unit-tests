@@ -27,7 +27,7 @@ typedef int ngx_pool_t;
 void *
 ngx_pnalloc(ngx_pool_t *pool, size_t size)
 {
-	return pool ? malloc(size) : NULL;
+	return *pool ? malloc(size) : NULL;
 }
 
 
@@ -246,7 +246,7 @@ void ngx_toupper_alphabet_t ()
 
 void ngx_pstrdup_with_pool_big_enough_t ()
 {
-	// ngx_pool_t  *pool = ngx_create_pool(32, NULL);
+	// this pool will just malloc everithing we need
 	ngx_pool_t  pool = 1;
 	
 	ngx_str_t src = ngx_string("test");
@@ -255,6 +255,19 @@ void ngx_pstrdup_with_pool_big_enough_t ()
 	
 	// check copy
 	assert(dst[0] == 't' && dst[1] == 'e' && dst[2] == 's' && dst[3] == 't' && dst[4] == '\0');
+}
+
+void ngx_pstrdup_with_null_pool_t ()
+{
+	// this pool will always fail to alloc any amount of memery
+	ngx_pool_t  pool = 0;
+	
+	ngx_str_t src = ngx_string("test");
+	
+	u_char *dst = ngx_pstrdup(&pool, &src);
+	
+	// dst must be NULL
+	assert(dst == NULL);
 }
 
 
