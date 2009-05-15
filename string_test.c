@@ -1,43 +1,75 @@
+#include "testing.h"
 #include <assert.h>
-// #include <ngx_core.h>
-
-#include <ngx_config.h>
 
 
+// mocking nginx
+#define _NGX_CORE_H_INCLUDED_
 
-// fake nginx
-typedef unsigned char u_char;
+// #include <ngx_config.h>
+#include <ngx_errno.h>
+
+// typedef unsigned char u_char;
+
+typedef struct ngx_module_s      ngx_module_t;
+typedef struct ngx_conf_s        ngx_conf_t;
+typedef struct ngx_cycle_s       ngx_cycle_t;
+typedef struct ngx_pool_s        ngx_pool_t;
+typedef struct ngx_chain_s       ngx_chain_t;
+typedef struct ngx_log_s         ngx_log_t;
+typedef struct ngx_array_s       ngx_array_t;
+typedef struct ngx_open_file_s   ngx_open_file_t;
+typedef struct ngx_command_s     ngx_command_t;
+typedef struct ngx_file_s        ngx_file_t;
+typedef struct ngx_event_s       ngx_event_t;
+typedef struct ngx_connection_s  ngx_connection_t;
+
+typedef int                      ngx_fd_t;
+
+void
+ngx_log_error_core(ngx_uint_t level, ngx_log_t *log, ngx_err_t err,	const char *fmt, ...)
+{ abort(); }
+
 struct ngx_cycle_t
 {
-	int *log;
+	ngx_log_t *log;
 } ngx_cycle;
 
-typedef int ngx_log_t;
+// // GNU C library malloc hook
+// typedef void *(*malloc_fun) (size_t);
+// 
+// static malloc_fun old_malloc_hook; // = __malloc_hook;
+// static void *
+// my_malloc_hook (size_t size)
+// {
+//   void *result;
+//   __malloc_hook = old_malloc_hook;
+//   result = malloc (size);
+//   __malloc_hook = my_malloc_hook;
+//   printf ("malloc (%u) returns %p\n", (unsigned int) size, result);
+//   return result;
+// }
+// static void *
+// null_malloc_hook (size_t size)
+// {
+//   printf ("malloc(%u) returns NULL\n", (unsigned int) size);
+//   return NULL;
+// }
 
-void *
-ngx_alloc(size_t size, ngx_log_t *log)
-{
-	return malloc(size);
-}
+// void *
+// testing_ngx_alloc_null(size_t size, ngx_log_t *log)
+// {
+// 	return NULL;
+// }
+// 
+// void *
+// testing_malloc_null(size_t size)
+// {
+// 	return NULL;
+// }
 
 
-// fake pool
-typedef int ngx_pool_t;
-
-void *
-ngx_pnalloc(ngx_pool_t *pool, size_t size)
-{
-	return *pool ? malloc(size) : NULL;
-}
-
-
-#define _NGX_CORE_H_INCLUDED_
+#include <ngx_palloc.h>
 #include <ngx_string.h>
-
-#include "testing.h"
-
-
-
 
 
 
@@ -246,12 +278,10 @@ void ngx_toupper_alphabet_t ()
 
 void ngx_pstrdup_with_pool_big_enough_t ()
 {
-	// this pool will just malloc everithing we need
-	ngx_pool_t  pool = 1;
-	
+	ngx_pool_t  *pool = ngx_create_pool(32, NULL);
 	ngx_str_t src = ngx_string("test");
 	
-	u_char *dst = ngx_pstrdup(&pool, &src);
+	u_char *dst = ngx_pstrdup(pool, &src);
 	
 	// check copy
 	assert(dst[0] == 't' && dst[1] == 'e' && dst[2] == 's' && dst[3] == 't' && dst[4] == '\0');
@@ -259,12 +289,12 @@ void ngx_pstrdup_with_pool_big_enough_t ()
 
 void ngx_pstrdup_with_null_pool_t ()
 {
-	// this pool will always fail to alloc any amount of memery
-	ngx_pool_t  pool = 0;
-	
+	ngx_pool_t  *pool = ngx_create_pool(2, NULL);
 	ngx_str_t src = ngx_string("test");
 	
-	u_char *dst = ngx_pstrdup(&pool, &src);
+	// old_malloc_hook = __malloc_hook;
+	// __malloc_hook = null_malloc_hook;
+	u_char *dst = ngx_pstrdup(pool, &src);
 	
 	// dst must be NULL
 	assert(dst == NULL);
