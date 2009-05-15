@@ -2,14 +2,12 @@
 #include <assert.h>
 
 
-// mocking nginx
+// emulating nginx
 #define _NGX_CORE_H_INCLUDED_
 
-// #include <ngx_config.h>
 #include <ngx_errno.h>
 
 // typedef unsigned char u_char;
-
 typedef struct ngx_module_s      ngx_module_t;
 typedef struct ngx_conf_s        ngx_conf_t;
 typedef struct ngx_cycle_s       ngx_cycle_t;
@@ -34,43 +32,33 @@ struct ngx_cycle_t
 	ngx_log_t *log;
 } ngx_cycle;
 
-// // GNU C library malloc hook
-// typedef void *(*malloc_fun) (size_t);
-// 
-// static malloc_fun old_malloc_hook; // = __malloc_hook;
-// static void *
-// my_malloc_hook (size_t size)
-// {
-//   void *result;
-//   __malloc_hook = old_malloc_hook;
-//   result = malloc (size);
-//   __malloc_hook = my_malloc_hook;
-//   printf ("malloc (%u) returns %p\n", (unsigned int) size, result);
-//   return result;
-// }
-// static void *
-// null_malloc_hook (size_t size)
-// {
-//   printf ("malloc(%u) returns NULL\n", (unsigned int) size);
-//   return NULL;
-// }
-
-// void *
-// testing_ngx_alloc_null(size_t size, ngx_log_t *log)
-// {
-// 	return NULL;
-// }
-// 
-// void *
-// testing_malloc_null(size_t size)
-// {
-// 	return NULL;
-// }
-
 
 #include <ngx_palloc.h>
 #include <ngx_string.h>
 
+
+ngx_uint_t  ngx_pagesize;
+ngx_uint_t  ngx_pagesize_shift;
+ngx_uint_t  ngx_cacheline_size;
+
+static int __testing_no_memory = 0;
+
+void *
+ngx_alloc(size_t size, ngx_log_t *log)
+{
+	// printf("%s %d\n", "ngx_alloc hook", __testing_no_memory);
+	return __testing_no_memory ? NULL : malloc(size);
+}
+
+
+
+
+
+
+
+
+
+#define STRING_OF_100_CHARS "---------0---------1---------2---------3---------4---------5---------6---------7---------8---------9"
 
 
 void fields_t ()
@@ -289,12 +277,12 @@ void ngx_pstrdup_with_pool_big_enough_t ()
 
 void ngx_pstrdup_with_null_pool_t ()
 {
-	ngx_pool_t  *pool = ngx_create_pool(2, NULL);
-	ngx_str_t src = ngx_string("test");
+	ngx_pool_t  *pool = ngx_create_pool(50, NULL);
+	ngx_str_t src = ngx_string(STRING_OF_100_CHARS);
 	
-	// old_malloc_hook = __malloc_hook;
-	// __malloc_hook = null_malloc_hook;
+	__testing_no_memory = 555;
 	u_char *dst = ngx_pstrdup(pool, &src);
+	__testing_no_memory = 0;
 	
 	// dst must be NULL
 	assert(dst == NULL);
