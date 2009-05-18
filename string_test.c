@@ -59,6 +59,7 @@ ngx_alloc(size_t size, ngx_log_t *log)
 
 
 #define STRING_OF_100_CHARS "---------0---------1---------2---------3---------4---------5---------6---------7---------8---------9"
+#define STRING_OF_10_CHARS "---------0"
 
 
 void fields_t ()
@@ -287,5 +288,106 @@ void ngx_pstrdup_with_null_pool_t ()
 	// dst must be NULL
 	assert(dst == NULL);
 }
+
+
+
+
+
+// u_char * ngx_cdecl
+// ngx_sprintf(u_char *buf, const char *fmt, ...)
+// 
+// This function is a wrapper for ngx_vsnprintf() function.
+// It works similar to ngx_snprintf(), but does not take
+// destionation max length parameter, it then forces
+// destionation to be 65536 bytes lenght maximum.
+
+
+void ngx_sprintf_retval_t ()
+{
+	u_char *res, *buf = malloc(100);
+	
+	res = ngx_sprintf(buf, "%s", "ABC");
+	
+	// res must be 3 bytes far from buf
+	assert(buf + 3 == res);
+}
+
+
+
+// u_char * ngx_cdecl
+// ngx_snprintf(u_char *buf, size_t max, const char *fmt, ...)
+// 
+// This function is a wrapper for ngx_vsnprintf() function.
+// It takes the destionation lenght parameter and passes it to ngx_vsnprintf(),
+// which means that the ngx_vsnprintf() should write less or equal number of bytes to buf.
+// This function (and other ngx_*printf) never marks the end of resulting string
+// in other way than returning a pointer to the end of written data.
+// So you must handle this situation in that way your application expects.
+
+void ngx_snprintf_retval_t ()
+{
+	u_char *res, *buf = malloc(100);
+	
+	res = ngx_snprintf(buf, 10, "%s", "ABC");
+	
+	// res must be 3 bytes far from buf
+	assert(buf + 3 == res);
+}
+
+
+void ngx_snprintf_empty_format_t ()
+{
+	u_char *res, *buf = malloc(100);
+	
+	res = ngx_snprintf(buf, 10, "");
+	
+	// res must be equal to buf
+	assert(buf == res);
+}
+
+
+void ngx_snprintf_S_with_small_buf_t ()
+{
+	u_char *res, *buf = malloc(200);
+	
+	buf[10] = buf[11] = buf[12] = '!';
+	res = ngx_snprintf(buf, 10, "%s", STRING_OF_100_CHARS);
+	
+	// printf("%s\n", buf);
+	
+	// res must be at the end of writed data
+	assert(buf + 10 == res);
+	// the 11th 12th and 13th chars must still be '!'
+	assert(buf[10] == '!' && buf[11] == '!' && buf[12] == '!');
+}
+
+
+void ngx_snprintf_S_with_fits_buf_t ()
+{
+	u_char *res, *buf = malloc(200);
+	
+	buf[10] = buf[11] = buf[12] = '!';
+	res = ngx_snprintf(buf, 30, "%s", STRING_OF_10_CHARS);
+	
+	// printf("%s\n", buf);
+	
+	// res must be at the end of writed data (except the trailing '\0')
+	assert(buf + 10 == res);
+	// the 11th, 12th and 13th chars must still be '!'
+	assert(buf[10] == '!' && buf[11] == '!' && buf[12] == '!');
+}
+
+
+
+
+
+
+
+
+// It works similar to stdlib's sprintf, but is implemented
+// from the ground up on the va_list technique.
+// It's up to you to allocate anough memory for the buf.
+
+
 
 
