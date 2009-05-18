@@ -1,0 +1,3 @@
+A work-in-progress unit test suit for nginx.
+
+There is a set of easy-to-use functional tests for nginx by Maxim Dounin: http://mdounin.ru/hg/nginx-tests
